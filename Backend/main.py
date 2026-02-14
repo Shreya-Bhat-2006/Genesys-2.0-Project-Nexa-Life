@@ -1,9 +1,27 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from datetime import datetime
-from typing import List
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from pydantic import BaseModel, Field
+from datetime import datetime, timedelta
+from typing import List, Optional
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 
-app = FastAPI()
+app = FastAPI(title="Green Carbon Ledger API")
+
+# ======================
+# SECURITY CONFIG
+# ======================
+
+SECRET_KEY = "supersecretkey123"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+# ======================
+# TEMP STORAGE (Replace with DB later)
+# ======================
 
 users = []
 credits = []
@@ -12,17 +30,34 @@ credits = []
 # MODELS
 # ======================
 
-class User(BaseModel):
+# -------- USER MODELS --------
+
+class UserCreate(BaseModel):
     company_name: str
     email: str
     password: str
+    role: str  # "admin" or "company"
+
+
+class UserResponse(BaseModel):
+    company_name: str
+    email: str
     role: str
 
 
+# -------- AUTH MODELS --------
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
+
+
+# -------- CREDIT MODELS --------
+
 class HistoryEntry(BaseModel):
     action: str
-    from_owner: str | None = None
-    to_owner: str | None = None
+    from_owner: Optional[str] = None
+    to_owner: Optional[str] = None
     timestamp: str
 
 
@@ -30,85 +65,162 @@ class Credit(BaseModel):
     credit_id: str
     owner_email: str
     status: str
-    history: List[HistoryEntry] = []
+    history: List[HistoryEntry] = Field(default_factory=list)
+
+
+class CreditResponse(BaseModel):
+    credit_id: str
+    owner_email: str
+    status: str
+    history: List[HistoryEntry]
 
 
 class CreateCreditRequest(BaseModel):
     credit_id: str
     owner_email: str
-    admin_email: str
 
 
 class TransferRequest(BaseModel):
     credit_id: str
-    current_owner_email: str
     new_owner_email: str
 
 
 class UseCreditRequest(BaseModel):
     credit_id: str
-    owner_email: str
 
 
 # ======================
-# USER ROUTES
+# PASSWORD FUNCTIONS
+# ======================
+
+def hash_password(password: str):
+    return pwd_context.hash(password)
+
+
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
+# ======================
+# JWT FUNCTIONS
+# ======================
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def get_current_user(token: str = Depends(oauth2_scheme)):
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+
+        if email is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    for user in users:
+        if user["email"] == email:
+            return user
+
+    raise HTTPException(status_code=404, detail="User not found")
+
+
+# ======================
+# RBAC DEPENDENCY
+# ======================
+
+def require_role(role: str):
+    def role_checker(current_user: dict = Depends(get_current_user)):
+        if current_user["role"] != role:
+            raise HTTPException(status_code=403, detail="Access denied")
+        return current_user
+    return role_checker
+
+
+# ======================
+# ROUTES
 # ======================
 
 @app.get("/")
 def home():
-    return {"message": "Green Carbon Ledger Backend Running"}
+    return {"message": "Green Carbon Ledger Backend Running 🚀"}
 
 
-@app.post("/register")
-def register(user: User):
-    users.append(user)
-    return {"message": "User registered successfully", "user": user}
+# ----------------------
+# REGISTER
+# ----------------------
+@app.post("/register", response_model=UserResponse)
+def register(user: UserCreate):
+
+    for u in users:
+        if u["email"] == user.email:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_password = hash_password(user.password)
+
+    new_user = {
+        "company_name": user.company_name,
+        "email": user.email,
+        "password": hashed_password,
+        "role": user.role
+    }
+
+    users.append(new_user)
+
+    return {
+        "company_name": user.company_name,
+        "email": user.email,
+        "role": user.role
+    }
 
 
-@app.get("/users")
-def get_users():
-    return users
+# ----------------------
+# LOGIN
+# ----------------------
+@app.post("/login", response_model=TokenResponse)
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
-
-# ======================
-# CREDIT ROUTES
-# ======================
-
-@app.post("/create-credit")
-def create_credit(data: CreateCreditRequest):
-
-    # Check if admin exists
-    admin_user = None
     for user in users:
-        if user.email == data.admin_email:
-            admin_user = user
-            break
+        if user["email"] == form_data.username and verify_password(form_data.password, user["password"]):
 
-    if not admin_user:
-        raise HTTPException(status_code=404, detail="Admin user not found")
+            access_token = create_access_token(data={"sub": user["email"]})
 
-    # Check if role is admin
-    if admin_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Only admin can create credits")
+            return {
+                "access_token": access_token,
+                "token_type": "bearer"
+            }
 
-    # Prevent duplicate credit IDs
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+
+# ----------------------
+# CREATE CREDIT (Admin Only)
+# ----------------------
+@app.post("/create-credit", response_model=CreditResponse)
+def create_credit(
+    data: CreateCreditRequest,
+    current_user: dict = Depends(require_role("admin"))
+):
+
     for c in credits:
         if c.credit_id == data.credit_id:
             raise HTTPException(status_code=400, detail="Credit ID already exists")
 
-    # Create credit
     new_credit = Credit(
         credit_id=data.credit_id,
         owner_email=data.owner_email,
-        status="Active",
-        history=[]
+        status="Active"
     )
 
-    # Add creation history
     new_credit.history.append(
         HistoryEntry(
             action="Created",
-            from_owner=None,
             to_owner=data.owner_email,
             timestamp=str(datetime.utcnow())
         )
@@ -116,29 +228,56 @@ def create_credit(data: CreateCreditRequest):
 
     credits.append(new_credit)
 
-    return {
-        "message": "Carbon credit created successfully by admin",
-        "credit": new_credit
-    }
+    return new_credit
 
 
-@app.get("/credits")
-def get_credits():
+# ----------------------
+# GET ALL CREDITS (Protected)
+# ----------------------
+@app.get("/credits", response_model=List[CreditResponse])
+def get_credits(current_user: dict = Depends(get_current_user)):
     return credits
 
 
-@app.post("/transfer-credit")
-def transfer_credit(data: TransferRequest):
+# ----------------------
+# MARKETPLACE (Active Credits Only)
+# ----------------------
+@app.get("/marketplace", response_model=List[CreditResponse])
+def marketplace():
+    return [credit for credit in credits if credit.status == "Active"]
+
+
+# ----------------------
+# PUBLIC VERIFY
+# ----------------------
+@app.get("/verify/{credit_id}", response_model=CreditResponse)
+def verify_credit(credit_id: str):
+
+    for credit in credits:
+        if credit.credit_id == credit_id:
+            return credit
+
+    raise HTTPException(status_code=404, detail="Credit not found")
+
+
+# ----------------------
+# TRANSFER CREDIT (Owner Only)
+# ----------------------
+@app.post("/transfer-credit", response_model=CreditResponse)
+def transfer_credit(
+    data: TransferRequest,
+    current_user: dict = Depends(get_current_user)
+):
 
     for credit in credits:
 
         if credit.credit_id == data.credit_id:
 
             if credit.status == "Used":
-                raise HTTPException(status_code=400, detail="Cannot transfer a used credit")
+                raise HTTPException(status_code=400, detail="Cannot transfer used credit")
 
-            if credit.owner_email != data.current_owner_email:
-                raise HTTPException(status_code=403, detail="Only current owner can transfer this credit")
+            if credit.owner_email != current_user["email"]:
+                raise HTTPException(status_code=403, detail="Only owner can transfer")
 
             credit.history.append(
                 HistoryEntry(
@@ -151,35 +290,40 @@ def transfer_credit(data: TransferRequest):
 
             credit.owner_email = data.new_owner_email
 
-            return {"message": "Credit transferred successfully", "credit": credit}
+            return credit
 
     raise HTTPException(status_code=404, detail="Credit not found")
 
 
-@app.post("/use-credit")
-def use_credit(data: UseCreditRequest):
+# ----------------------
+# USE CREDIT (Owner Only)
+# ----------------------
+@app.post("/use-credit", response_model=CreditResponse)
+def use_credit(
+    data: UseCreditRequest,
+    current_user: dict = Depends(get_current_user)
+):
 
     for credit in credits:
 
         if credit.credit_id == data.credit_id:
 
             if credit.status == "Used":
-                raise HTTPException(status_code=400, detail="Credit already used")
+                raise HTTPException(status_code=400, detail="Already used")
 
-            if credit.owner_email != data.owner_email:
-                raise HTTPException(status_code=403, detail="Only current owner can use this credit")
+            if credit.owner_email != current_user["email"]:
+                raise HTTPException(status_code=403, detail="Only owner can use")
 
             credit.history.append(
                 HistoryEntry(
                     action="Used",
                     from_owner=credit.owner_email,
-                    to_owner=None,
                     timestamp=str(datetime.utcnow())
                 )
             )
 
             credit.status = "Used"
 
-            return {"message": "Credit marked as Used", "credit": credit}
+            return credit
 
     raise HTTPException(status_code=404, detail="Credit not found")
