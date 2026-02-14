@@ -1,40 +1,34 @@
 import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 
 function Navbar() {
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
-
   return (
-    <nav className="navbar">
-      <div className="logo">Green Carbon Ledger</div>
+    <div
+      style={{
+        backgroundColor: "#384959",
+        padding: "15px 40px",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        color: "white"
+      }}
+    >
+      <h2 style={{ margin: 0 }}>Green Carbon Ledger</h2>
 
-      <div className="nav-links">
-        <Link to="/">Home</Link>
-
-        {!token ? (
-          <>
-            <Link to="/login">Login</Link>
-            <Link to="/register">Register</Link>
-          </>
-        ) : (
-          <>
-            <Link to="/dashboard">Dashboard</Link>
-            <Link to="/marketplace">Marketplace</Link>
-            <Link to="/verify">Verify</Link>
-            <button onClick={handleLogout} className="logout-btn">
-              Logout
-            </button>
-          </>
-        )}
+      <div>
+        <Link to="/" style={linkStyle}>Home</Link>
+        <Link to="/login" style={linkStyle}>Login</Link>
+        <Link to="/register" style={linkStyle}>Register</Link>
+        <Link to="/dashboard" style={linkStyle}>Dashboard</Link>
       </div>
-    </nav>
+    </div>
   );
 }
+
+const linkStyle = {
+  color: "white",
+  marginLeft: "20px",
+  textDecoration: "none",
+  fontSize: "16px"
+};
 
 export default Navbar;

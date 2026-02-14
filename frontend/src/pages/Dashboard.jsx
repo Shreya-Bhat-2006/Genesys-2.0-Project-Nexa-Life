@@ -1,9 +1,24 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
+  const navigate = useNavigate();
+
   return (
-    <div style={{ padding: "60px 20px", textAlign: "center" }}>
-      <h1 style={{ fontSize: "36px", marginBottom: "40px" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#BDDDDC",
+        padding: "60px 20px",
+        textAlign: "center"
+      }}
+    >
+      <h1
+        style={{
+          fontSize: "40px",
+          marginBottom: "60px",
+          color: "#384959"
+        }}
+      >
         Dashboard
       </h1>
 
@@ -11,32 +26,67 @@ function Dashboard() {
         style={{
           display: "flex",
           justifyContent: "center",
-          gap: "30px",
-          flexWrap: "wrap"
+          flexWrap: "wrap",
+          gap: "40px"
         }}
       >
-        <Link to="/apply-project" className="dashboard-card">
+        {/* Apply Project */}
+        <div
+          onClick={() => navigate("/apply-project")}
+          style={cardStyle}
+        >
           Apply Green Project
-        </Link>
+        </div>
 
-        <Link to="/marketplace" className="dashboard-card">
+        {/* Marketplace */}
+        <div
+          onClick={() => navigate("/marketplace")}
+          style={cardStyle}
+        >
           Marketplace
-        </Link>
+        </div>
 
-        <Link to="/my-credits" className="dashboard-card">
+        {/* My Credits */}
+        <div
+          onClick={() => navigate("/my-credits")}
+          style={cardStyle}
+        >
           My Credits
-        </Link>
+        </div>
 
-        <Link to="/transactions" className="dashboard-card">
+        {/* Transaction History */}
+        <div
+          onClick={() => navigate("/history")}
+          style={cardStyle}
+        >
           Transaction History
-        </Link>
+        </div>
 
-        <Link to="/admin" className="dashboard-card">
+        {/* Admin Panel */}
+        <div
+          onClick={() => navigate("/admin")}
+          style={cardStyle}
+        >
           Admin Panel
-        </Link>
+        </div>
       </div>
     </div>
   );
 }
+
+const cardStyle = {
+  width: "280px",
+  height: "120px",
+  backgroundColor: "#6A89A7",
+  color: "white",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "12px",
+  fontSize: "18px",
+  cursor: "pointer",
+  transition: "0.3s",
+  boxShadow: "0 4px 12px rgba(0,0,0,0.2)"
+};
 
 export default Dashboard;
