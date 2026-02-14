@@ -49,3 +49,12 @@ class CreditResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class TransferRequest(BaseModel):
+    credit_id: str
+    new_owner_email: str
+
+
+class UseCreditRequest(BaseModel):
+    credit_id: str

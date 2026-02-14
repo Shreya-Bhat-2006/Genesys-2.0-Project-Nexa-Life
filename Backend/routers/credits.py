@@ -2,19 +2,23 @@ from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import List
 
-from Backend.schemas import CreateCreditRequest, CreditResponse
+from Backend.schemas import (
+    CreateCreditRequest,
+    CreditResponse,
+    TransferRequest,
+    UseCreditRequest
+)
 from Backend.models import Credit, User
 from Backend.database import get_db
-
 from Backend.dependencies import require_role
 from Backend.auth import get_current_user
 
 router = APIRouter()
 
 
-
-
-
+# ----------------------------
+# CREATE CREDIT (Admin Only)
+# ----------------------------
 @router.post("/create-credit", response_model=CreditResponse)
 def create_credit(
     data: CreateCreditRequest,
@@ -50,6 +54,9 @@ def create_credit(
     }
 
 
+# ----------------------------
+# GET ALL CREDITS
+# ----------------------------
 @router.get("/credits", response_model=List[CreditResponse])
 def get_credits(
     db: Session = Depends(get_db),
@@ -68,3 +75,76 @@ def get_credits(
         })
 
     return result
+
+
+# ----------------------------
+# TRANSFER CREDIT
+# ----------------------------
+@router.post("/transfer-credit", response_model=CreditResponse)
+def transfer_credit(
+    data: TransferRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    credit = db.query(Credit).filter(Credit.credit_id == data.credit_id).first()
+
+    if not credit:
+        raise HTTPException(status_code=404, detail="Credit not found")
+
+    if credit.status == "Used":
+        raise HTTPException(status_code=400, detail="Cannot transfer used credit")
+
+    if credit.owner.email != current_user.email:
+        raise HTTPException(status_code=403, detail="Only owner can transfer")
+
+    new_owner = db.query(User).filter(User.email == data.new_owner_email).first()
+
+    if not new_owner:
+        raise HTTPException(status_code=404, detail="New owner not found")
+
+    credit.owner_id = new_owner.id
+
+    db.commit()
+    db.refresh(credit)
+
+    return {
+        "credit_id": credit.credit_id,
+        "owner_email": new_owner.email,
+        "status": credit.status,
+        "history": []
+    }
+
+
+# ----------------------------
+# USE CREDIT (RETIRE)
+# ----------------------------
+@router.post("/use-credit", response_model=CreditResponse)
+def use_credit(
+    data: UseCreditRequest,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    credit = db.query(Credit).filter(Credit.credit_id == data.credit_id).first()
+
+    if not credit:
+        raise HTTPException(status_code=404, detail="Credit not found")
+
+    if credit.status == "Used":
+        raise HTTPException(status_code=400, detail="Credit already used")
+
+    if credit.owner.email != current_user.email:
+        raise HTTPException(status_code=403, detail="Only owner can use credit")
+
+    credit.status = "Used"
+
+    db.commit()
+    db.refresh(credit)
+
+    return {
+        "credit_id": credit.credit_id,
+        "owner_email": credit.owner.email,
+        "status": credit.status,
+        "history": []
+    }
