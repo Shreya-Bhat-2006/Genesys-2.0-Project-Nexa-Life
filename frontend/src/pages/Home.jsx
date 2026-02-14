@@ -1,58 +1,79 @@
-function Home() {
+function Landing() {
   return (
     <>
-      <div style={{
-        background: "linear-gradient(to right, #1b4f72, #2e86de)",
-        color: "white",
-        padding: "120px 20px",
-        textAlign: "center"
-      }}>
-        <h1 style={{ fontSize: "48px", marginBottom: "20px" }}>
-          Transparent Carbon Credit Tracking
+      <section
+        style={{
+          background: "linear-gradient(135deg, #384959, #6A89A7)",
+          color: "white",
+          padding: "120px 20px",
+          textAlign: "center"
+        }}
+      >
+        <h1 style={{ fontSize: "48px", fontWeight: "700", marginBottom: "20px" }}>
+          Green Carbon Ledger
         </h1>
 
-        <p style={{ fontSize: "20px", maxWidth: "700px", margin: "0 auto 30px" }}>
-          Prevent fraud. Stop double counting. Build trust in green investments.
+        <p style={{ fontSize: "20px", maxWidth: "700px", margin: "0 auto 40px" }}>
+          A secure and transparent carbon credit marketplace that prevents fraud,
+          eliminates double counting, and builds trust in green investments.
         </p>
 
-        <a href="/login">
-          <button style={{ marginRight: "15px" }}>Get Started</button>
-        </a>
-      </div>
+        <div>
+          <a href="/login">
+            <button
+              style={{
+                backgroundColor: "#88BDF2",
+                color: "#384959",
+                padding: "12px 28px",
+                borderRadius: "8px",
+                border: "none",
+                fontWeight: "600",
+                marginRight: "15px",
+                cursor: "pointer"
+              }}
+            >
+              Login
+            </button>
+          </a>
+
+          <a href="/register">
+            <button
+              style={{
+                backgroundColor: "white",
+                color: "#384959",
+                padding: "12px 28px",
+                borderRadius: "8px",
+                border: "none",
+                fontWeight: "600",
+                cursor: "pointer"
+              }}
+            >
+              Register
+            </button>
+          </a>
+        </div>
+      </section>
 
       {/* About Section */}
-      <div style={{ padding: "80px 20px", textAlign: "center" }}>
-        <h2>About Our Platform</h2>
-        <p style={{ maxWidth: "800px", margin: "20px auto", fontSize: "18px" }}>
-          Our system tracks carbon credits after green projects are approved.
-          Each credit is uniquely identified, permanently recorded,
-          and cannot be reused once retired.
+      <section
+        style={{
+          backgroundColor: "#BDDDFC",
+          padding: "80px 20px",
+          textAlign: "center"
+        }}
+      >
+        <h2 style={{ fontSize: "32px", marginBottom: "20px", color: "#384959" }}>
+          How It Works
+        </h2>
+
+        <p style={{ maxWidth: "800px", margin: "0 auto", fontSize: "18px", color: "#384959" }}>
+          Projects are approved by admin, carbon credits are issued with unique IDs,
+          and every transaction is permanently recorded in a tamper-resistant ledger.
+          Once retired, credits cannot be reused.
         </p>
-      </div>
-
-      {/* How It Works */}
-      <div style={{ background: "#f4f6f8", padding: "80px 20px", textAlign: "center" }}>
-        <h2>How It Works</h2>
-
-        <div style={{ display: "flex", justifyContent: "center", gap: "40px", flexWrap: "wrap", marginTop: "40px" }}>
-          <div style={{ width: "250px" }}>
-            <h3>1. Project Approval</h3>
-            <p>Green projects are verified and approved by admin.</p>
-          </div>
-
-          <div style={{ width: "250px" }}>
-            <h3>2. Credit Issuance</h3>
-            <p>Unique carbon credits are generated securely.</p>
-          </div>
-
-          <div style={{ width: "250px" }}>
-            <h3>3. Transfer & Retire</h3>
-            <p>Credits can be bought and retired permanently.</p>
-          </div>
-        </div>
-      </div>
+      </section>
     </>
   );
 }
 
-export default Home;
+export default Landing;

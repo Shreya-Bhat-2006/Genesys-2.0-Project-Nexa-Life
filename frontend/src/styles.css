@@ -21,12 +21,15 @@ body {
 }
 
 .hero {
+  background: linear-gradient(135deg, #384959, #6A89A7);
   height: 90vh;
-  background: url("https://images.unsplash.com/photo-1509395176047-4a66953fd231") center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  color: white;
 }
+    
 
 .hero-overlay {
   text-align: center;
