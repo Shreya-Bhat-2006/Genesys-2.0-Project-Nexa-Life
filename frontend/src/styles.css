@@ -29,7 +29,7 @@ body {
   text-align: center;
   color: white;
 }
-    
+
 
 .hero-overlay {
   text-align: center;
@@ -103,3 +103,90 @@ input {
 .full {
   width: 100%;
 }
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 40px;
+  background-color: #384959;
+  color: white;
+}
+
+.nav-links a {
+  margin-right: 20px;
+  text-decoration: none;
+  color: white;
+}
+
+.logout-btn {
+  background: #a47dab;
+  border: none;
+  padding: 8px 14px;
+  color: white;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #BDDDFC; /* stormy morning light blue */
+}
+
+.auth-box {
+  background: white;
+  padding: 40px;
+  width: 420px;
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+
+.auth-box h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-size: 28px;
+  color: #384959;
+}
+
+.auth-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+.auth-box button {
+  width: 100%;
+  padding: 12px;
+  background-color: #6A89A7;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+
+.dashboard-card {
+  background-color: #6A89A7;
+  color: white;
+  padding: 30px 40px;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 500;
+  min-width: 220px;
+  transition: 0.3s;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.dashboard-card:hover {
+  background-color: #384959;
+  transform: translateY(-5px);
+}
+

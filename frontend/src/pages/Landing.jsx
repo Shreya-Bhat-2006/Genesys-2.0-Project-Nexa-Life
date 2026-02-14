@@ -3,8 +3,8 @@ function Landing() {
     <>
       <section className="hero">
         <div className="hero-overlay">
-          <h1>Transparent Carbon Credit Marketplace</h1>
-          <p>Secure. Verifiable. Tamper-Resistant.</p>
+          <h1>Green Carbon Ledger</h1>
+          <p>Secure  Verifiable  Tamper-Resistant </p>
           <div className="hero-buttons">
             <a href="/login" className="btn-primary">Login</a>
             <a href="/register" className="btn-secondary">Register</a>
