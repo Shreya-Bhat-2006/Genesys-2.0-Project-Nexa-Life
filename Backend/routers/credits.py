@@ -1,58 +1,70 @@
 from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from typing import List
-from datetime import datetime
-from schemas import *
-from models import credits
-from auth import get_current_user
-from dependencies import require_role
+
+from Backend.schemas import CreateCreditRequest, CreditResponse
+from Backend.models import Credit, User
+from Backend.database import get_db
+
+from Backend.dependencies import require_role
+from Backend.auth import get_current_user
 
 router = APIRouter()
+
+
+
 
 
 @router.post("/create-credit", response_model=CreditResponse)
 def create_credit(
     data: CreateCreditRequest,
-    current_user: dict = Depends(require_role("admin"))
+    current_user=Depends(require_role("admin")),
+    db: Session = Depends(get_db)
 ):
 
-    for c in credits:
-        if c.credit_id == data.credit_id:
-            raise HTTPException(status_code=400, detail="Credit ID already exists")
+    existing = db.query(Credit).filter(Credit.credit_id == data.credit_id).first()
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Credit ID already exists")
+
+    owner = db.query(User).filter(User.email == data.owner_email).first()
+
+    if not owner:
+        raise HTTPException(status_code=404, detail="Owner not found")
 
     new_credit = Credit(
         credit_id=data.credit_id,
-        owner_email=data.owner_email,
+        owner_id=owner.id,
         status="Active"
     )
 
-    new_credit.history.append(
-        HistoryEntry(
-            action="Created",
-            to_owner=data.owner_email,
-            timestamp=str(datetime.utcnow())
-        )
-    )
+    db.add(new_credit)
+    db.commit()
+    db.refresh(new_credit)
 
-    credits.append(new_credit)
-
-    return new_credit
+    return {
+        "credit_id": new_credit.credit_id,
+        "owner_email": owner.email,
+        "status": new_credit.status,
+        "history": []
+    }
 
 
 @router.get("/credits", response_model=List[CreditResponse])
-def get_credits(current_user: dict = Depends(get_current_user)):
-    return credits
+def get_credits(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
 
+    credits = db.query(Credit).all()
 
-@router.get("/marketplace", response_model=List[CreditResponse])
-def marketplace():
-    return [credit for credit in credits if credit.status == "Active"]
-
-
-@router.get("/verify/{credit_id}", response_model=CreditResponse)
-def verify_credit(credit_id: str):
-
+    result = []
     for credit in credits:
-        if credit.credit_id == credit_id:
-            return credit
+        result.append({
+            "credit_id": credit.credit_id,
+            "owner_email": credit.owner.email,
+            "status": credit.status,
+            "history": []
+        })
 
-    raise HTTPException(status_code=404, detail="Credit not found")
+    return result

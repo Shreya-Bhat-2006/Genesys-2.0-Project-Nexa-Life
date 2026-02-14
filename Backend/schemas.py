@@ -1,7 +1,11 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
 
-# -------- USER MODELS --------
+
+# ----------------------------
+# USER SCHEMAS
+# ----------------------------
 
 class UserCreate(BaseModel):
     company_name: str
@@ -15,46 +19,33 @@ class UserResponse(BaseModel):
     email: str
     role: str
 
+    class Config:
+        from_attributes = True
 
-# -------- AUTH --------
+
+# ----------------------------
+# AUTH SCHEMA
+# ----------------------------
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
 
-# -------- CREDIT MODELS --------
-
-class HistoryEntry(BaseModel):
-    action: str
-    from_owner: Optional[str] = None
-    to_owner: Optional[str] = None
-    timestamp: str
-
-
-class Credit(BaseModel):
-    credit_id: str
-    owner_email: str
-    status: str
-    history: List[HistoryEntry] = Field(default_factory=list)
-
-
-class CreditResponse(BaseModel):
-    credit_id: str
-    owner_email: str
-    status: str
-    history: List[HistoryEntry]
-
+# ----------------------------
+# CREDIT SCHEMAS
+# ----------------------------
 
 class CreateCreditRequest(BaseModel):
     credit_id: str
     owner_email: str
 
 
-class TransferRequest(BaseModel):
+class CreditResponse(BaseModel):
     credit_id: str
-    new_owner_email: str
+    owner_email: str
+    status: str
+    history: List = []
 
-
-class UseCreditRequest(BaseModel):
-    credit_id: str
+    class Config:
+        from_attributes = True
