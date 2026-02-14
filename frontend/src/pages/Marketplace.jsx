@@ -10,16 +10,15 @@ function Marketplace() {
 
   const fetchCredits = async () => {
     try {
-      const response = await API.get("/credits");
-      setCredits(response.data);
-    } catch (error) {
-      console.error(error);
+      const res = await API.get("/credits");
+      setCredits(res.data);
+    } catch {
       alert("Failed to fetch credits");
     }
   };
 
   const handleBuy = async (creditId, ownerEmail) => {
-    const newOwner = prompt("Enter your email:");
+    const newOwner = prompt("Enter your email");
 
     try {
       await API.post("/transfer-credit", {
@@ -28,40 +27,34 @@ function Marketplace() {
         new_owner_email: newOwner
       });
 
-      alert("Credit transferred successfully");
-      fetchCredits(); // refresh list
-    } catch (error) {
-      console.error(error);
+      alert("Transferred successfully");
+      fetchCredits();
+    } catch {
       alert("Transfer failed");
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="container">
       <h2>Marketplace</h2>
-
-      <table border="1" cellPadding="10">
+      <table>
         <thead>
           <tr>
-            <th>Credit ID</th>
+            <th>ID</th>
             <th>Owner</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {credits.map((credit) => (
-            <tr key={credit.credit_id}>
-              <td>{credit.credit_id}</td>
-              <td>{credit.owner_email}</td>
-              <td>{credit.status}</td>
+          {credits.map((c) => (
+            <tr key={c.credit_id}>
+              <td>{c.credit_id}</td>
+              <td>{c.owner_email}</td>
+              <td>{c.status}</td>
               <td>
-                {credit.status === "Active" && (
-                  <button
-                    onClick={() =>
-                      handleBuy(credit.credit_id, credit.owner_email)
-                    }
-                  >
+                {c.status === "Active" && (
+                  <button onClick={() => handleBuy(c.credit_id, c.owner_email)}>
                     Buy
                   </button>
                 )}

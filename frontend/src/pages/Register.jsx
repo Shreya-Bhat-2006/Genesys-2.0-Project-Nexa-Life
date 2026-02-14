@@ -12,41 +12,33 @@ function Register() {
     try {
       const response = await API.post("/register", {
         company_name: companyName,
-        email: email,
-        password: password,
+        email,
+        password,
         role: "company"
       });
 
       alert(response.data.message);
-    } catch (error) {
-      console.error(error);
+    } catch {
       alert("Registration failed");
     }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="container">
       <h2>Register</h2>
-
       <form onSubmit={handleSubmit}>
         <input
-          type="text"
           placeholder="Company Name"
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
           required
         />
-        <br /><br />
-
         <input
-          type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
         />
-        <br /><br />
-
         <input
           type="password"
           placeholder="Password"
@@ -54,8 +46,6 @@ function Register() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <br /><br />
-
         <button type="submit">Register</button>
       </form>
     </div>

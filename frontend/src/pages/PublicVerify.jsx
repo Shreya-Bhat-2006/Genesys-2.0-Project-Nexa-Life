@@ -1,37 +1,36 @@
 import { useState } from "react";
+import API from "../services/api";
 
 function PublicVerify() {
-  const [creditId, setCreditId] = useState("");
-  const [result, setResult] = useState(null);
+  const [id, setId] = useState("");
+  const [credit, setCredit] = useState(null);
 
-  const handleVerify = () => {
-    setResult({
-      id: creditId,
-      owner: "Company A",
-      status: "Active"
-    });
+  const verify = async () => {
+    try {
+      const res = await API.get("/credits");
+      const found = res.data.find(c => c.credit_id === id);
+      setCredit(found || null);
+    } catch {
+      alert("Verification failed");
+    }
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Public Verification</h2>
+    <div className="container">
+      <h2>Verify Credit</h2>
 
       <input
-        type="text"
         placeholder="Enter Credit ID"
-        value={creditId}
-        onChange={(e) => setCreditId(e.target.value)}
+        value={id}
+        onChange={(e) => setId(e.target.value)}
       />
 
-      <button onClick={handleVerify} style={{ marginLeft: "10px" }}>
-        Verify
-      </button>
+      <button onClick={verify}>Verify</button>
 
-      {result && (
+      {credit && (
         <div style={{ marginTop: "20px" }}>
-          <p><strong>Credit ID:</strong> {result.id}</p>
-          <p><strong>Owner:</strong> {result.owner}</p>
-          <p><strong>Status:</strong> {result.status}</p>
+          <p><strong>Owner:</strong> {credit.owner_email}</p>
+          <p><strong>Status:</strong> {credit.status}</p>
         </div>
       )}
     </div>

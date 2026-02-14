@@ -1,15 +1,43 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function Navbar() {
+  const navigate = useNavigate();
+  const [loggedIn, setLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const status = localStorage.getItem("loggedIn");
+    if (status === "true") setLoggedIn(true);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("loggedIn");
+    setLoggedIn(false);
+    navigate("/");
+  };
+
   return (
-    <nav style={{ padding: "10px", background: "#e6f2f2" }}>
-      <Link to="/" style={{ marginRight: "15px" }}>Login</Link>
-      <Link to="/register" style={{ marginRight: "15px" }}>Register</Link>
-      <Link to="/dashboard" style={{ marginRight: "15px" }}>Dashboard</Link>
-      <Link to="/apply-project" style={{ marginRight: "15px" }}>Apply Project</Link>
-      <Link to="/marketplace" style={{ marginRight: "15px" }}>Marketplace</Link>
-      <Link to="/my-credits" style={{ marginRight: "15px" }}>My Credits</Link>
-      <Link to="/verify">Verify</Link>
+    <nav style={{ display: "flex", justifyContent: "space-between", padding: "15px 40px", background: "#1b4f72", color: "white" }}>
+      <div style={{ fontWeight: "bold", fontSize: "20px" }}>
+        Green Carbon Ledger
+      </div>
+
+      <div>
+        {!loggedIn ? (
+          <>
+            <Link to="/" style={{ color: "white", marginRight: "20px" }}>Home</Link>
+            <Link to="/login" style={{ color: "white", marginRight: "20px" }}>Login</Link>
+            <Link to="/register" style={{ color: "white" }}>Register</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/dashboard" style={{ color: "white", marginRight: "20px" }}>Dashboard</Link>
+            <button onClick={handleLogout} style={{ background: "white", color: "#1b4f72" }}>
+              Logout
+            </button>
+          </>
+        )}
+      </div>
     </nav>
   );
 }

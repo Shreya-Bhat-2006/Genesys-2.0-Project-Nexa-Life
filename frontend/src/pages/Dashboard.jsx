@@ -1,31 +1,48 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 function Dashboard() {
+  const navigate = useNavigate();
+
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Dashboard</h2>
+    <div style={{ padding: "60px 40px" }}>
+      <h2 style={{ textAlign: "center", marginBottom: "40px" }}>Dashboard</h2>
 
-      <div style={{ marginTop: "20px" }}>
-        <Link to="/apply-project">
-          <button style={{ marginRight: "10px" }}>
-            Apply as Green Project
-          </button>
-        </Link>
+      <div style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: "40px",
+        flexWrap: "wrap"
+      }}>
+        <div style={cardStyle} onClick={() => navigate("/apply-project")}>
+          <h3>Apply as Green Project</h3>
+        </div>
 
-        <Link to="/marketplace">
-          <button style={{ marginRight: "10px" }}>
-            Buy Carbon Credits
-          </button>
-        </Link>
+        <div style={cardStyle} onClick={() => navigate("/marketplace")}>
+          <h3>Marketplace</h3>
+        </div>
 
-        <Link to="/my-credits">
-          <button>
-            View My Credits
-          </button>
-        </Link>
+        <div style={cardStyle} onClick={() => navigate("/my-credits")}>
+          <h3>My Credits</h3>
+        </div>
+
+        <div style={cardStyle} onClick={() => navigate("/verify")}>
+          <h3>Verify Credits</h3>
+        </div>
       </div>
     </div>
   );
 }
+
+const cardStyle = {
+  width: "250px",
+  height: "150px",
+  background: "white",
+  borderRadius: "10px",
+  boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer"
+};
 
 export default Dashboard;

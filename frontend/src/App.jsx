@@ -1,6 +1,6 @@
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -11,10 +11,11 @@ import PublicVerify from "./pages/PublicVerify";
 
 function App() {
   return (
-    <>
+    <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Login />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/apply-project" element={<ApplyProject />} />
@@ -22,7 +23,7 @@ function App() {
         <Route path="/my-credits" element={<MyCredits />} />
         <Route path="/verify" element={<PublicVerify />} />
       </Routes>
-    </>
+    </Router>
   );
 }
 
