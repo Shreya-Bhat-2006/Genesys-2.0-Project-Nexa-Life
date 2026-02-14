@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Clock</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #333;
+        }
+        .clock {
+            text-align: center;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="clock">
+        <h1>Digital Clock</h1>
+        <div id="clock"></div>
+        <p>Current Time in Different Time Zones:</p>
+        <div id="timezones"></div>
+    </div>
+
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const utcTime = now.toUTCString();
+            document.getElementById('clock').innerText = utcTime;
+
+            const timeZones = {
+                'UTC': now,
+                'America/New_York': new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })),
+                'Europe/London': new Date(now.toLocaleString('en-US', { timeZone: 'Europe/London' })),
+                'Asia/Kolkata': new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })),
+                'Australia/Sydney': new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' }))
+            };
+
+            const timezoneDiv = document.getElementById('timezones');
+            timezoneDiv.innerHTML = '';
+            for (const [zone, time] of Object.entries(timeZones)) {
+                timezoneDiv.innerHTML += `<p>${zone}: ${time.toTimeString()}</p>`;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
