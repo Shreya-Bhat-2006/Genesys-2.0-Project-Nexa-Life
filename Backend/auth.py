@@ -2,37 +2,48 @@ from datetime import datetime, timedelta
 from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
+import os
+from dotenv import load_dotenv
+import hashlib
+import secrets
 
 from Backend.models import User
 from Backend.database import get_db
 
+load_dotenv()
 
 # ===============================
 # SECURITY CONFIG
 # ===============================
 
-SECRET_KEY = "supersecretkey123"
+SECRET_KEY = os.getenv("SECRET_KEY", "fallback-secret-key-change-this")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # IMPORTANT: Must match router prefix exactly
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/users/login")
 
 
 # ===============================
-# PASSWORD FUNCTIONS
+# PASSWORD FUNCTIONS (Simple PBKDF2)
 # ===============================
 
 def hash_password(password: str):
-    return pwd_context.hash(password)
+    """Hash password using PBKDF2"""
+    salt = secrets.token_hex(32)
+    hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}${hashed.hex()}"
 
 
 def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+    """Verify password against hash"""
+    try:
+        salt, hashed = hashed_password.split('$')
+        new_hash = hashlib.pbkdf2_hmac('sha256', plain_password.encode(), salt.encode(), 100000)
+        return new_hash.hex() == hashed
+    except:
+        return False
 
 
 # ===============================

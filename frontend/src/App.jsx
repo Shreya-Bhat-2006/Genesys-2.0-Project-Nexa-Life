@@ -1,6 +1,6 @@
-import Navbar from "./components/Navbar";
-
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import Navbar from "./components/Navbar";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
@@ -15,8 +15,7 @@ import History from "./pages/History";
 function App() {
   return (
     <Router>
-
-      {/* ✅ THIS LINE WAS MISSING */}
+      {/* Navbar always visible */}
       <Navbar />
 
       <Routes>
@@ -26,7 +25,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/my-credits" element={<MyCredits />} />
-        <Route path="/apply" element={<ApplyProject />} />
+        <Route path="/apply-project" element={<ApplyProject />} />
+
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/history" element={<History />} />
       </Routes>

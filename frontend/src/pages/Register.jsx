@@ -1,10 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
+import { registerUser } from "../api";
 import { useNavigate } from "react-router-dom";
-
-
-
-const API = "http://127.0.0.1:8000";
 
 function Register() {
   const navigate = useNavigate();
@@ -16,6 +12,8 @@ function Register() {
     role: "company"
   });
 
+  const [loading, setLoading] = useState(false);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -26,69 +24,153 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      await axios.post(`${API}/register`, formData);
+    if (!formData.company_name || !formData.email || !formData.password) {
+      alert("Please fill in all fields");
+      return;
+    }
 
-      alert("Registration successful!");
-      navigate("/login"); // go to login after register
+    setLoading(true);
+    try {
+      await registerUser(formData);
+
+      alert("✅ Registration successful! Please log in.");
+      navigate("/login");
     } catch (error) {
-      console.error(error);
-      alert("Registration failed. Try again.");
+      alert(
+        "❌ Registration failed: " +
+          (error.response?.data?.detail || error.message || "Try again")
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <h2>Create Account</h2>
+    <div style={{ minHeight: "100vh", backgroundColor: "#BDDDDC", padding: "60px 20px" }}>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          maxWidth: "450px",
+          margin: "0 auto",
+          backgroundColor: "white",
+          padding: "40px",
+          borderRadius: "8px",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+        }}
+      >
+        <h2 style={{ textAlign: "center", color: "#384959", marginBottom: "30px" }}>
+          Create Account
+        </h2>
 
-        <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Company Name
+          </label>
           <input
             type="text"
             name="company_name"
-            placeholder="Company Name"
+            placeholder="Your Company Name"
             value={formData.company_name}
             onChange={handleChange}
-            required
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              boxSizing: "border-box",
+            }}
           />
+        </div>
 
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Email
+          </label>
           <input
             type="email"
             name="email"
-            placeholder="Email"
+            placeholder="your@email.com"
             value={formData.email}
             onChange={handleChange}
-            required
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              boxSizing: "border-box",
+            }}
           />
+        </div>
 
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Password
+          </label>
           <input
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="••••••••"
             value={formData.password}
             onChange={handleChange}
-            required
+            style={{
+              width: "100%",
+              padding: "10px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              boxSizing: "border-box",
+            }}
           />
+        </div>
 
+        <div style={{ marginBottom: "20px" }}>
+          <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+            Account Type
+          </label>
           <select
             name="role"
             value={formData.role}
             onChange={handleChange}
             style={{
               width: "100%",
-              padding: "12px",
-              marginBottom: "15px",
-              borderRadius: "6px",
-              border: "1px solid #ccc"
+              padding: "10px",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              boxSizing: "border-box",
             }}
           >
-            <option value="company">Company</option>
-            <option value="admin">Admin</option>
+            <option value="company">Company (Buyer/Green Project)</option>
+            <option value="admin">Admin (Approver)</option>
           </select>
+        </div>
 
-          <button type="submit">Register</button>
-        </form>
-      </div>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: "100%",
+            backgroundColor: loading ? "#ccc" : "#4CAF50",
+            color: "white",
+            padding: "12px",
+            border: "none",
+            borderRadius: "4px",
+            cursor: loading ? "not-allowed" : "pointer",
+            fontWeight: "bold",
+            fontSize: "16px",
+          }}
+        >
+          {loading ? "Registering..." : "Register"}
+        </button>
+
+        <p style={{ textAlign: "center", marginTop: "20px", color: "#666" }}>
+          Already have an account?{" "}
+          <a
+            href="/login"
+            style={{ color: "#2196F3", textDecoration: "none", fontWeight: "bold" }}
+          >
+            Login
+          </a>
+        </p>
+      </form>
     </div>
   );
 }
