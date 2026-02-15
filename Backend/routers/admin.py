@@ -55,52 +55,59 @@ def approve_project(
     if project.status != "pending":
         raise HTTPException(status_code=400, detail="Project is not pending")
 
-    # --------------------------------
-    # Fetch Owner SAFELY
-    # --------------------------------
+    # -------------------------------------------------
+    # Fetch Owner
+    # -------------------------------------------------
     owner = db.query(User).filter(User.id == project.owner_id).first()
 
     if not owner:
         raise HTTPException(status_code=404, detail="Project owner not found")
 
-    # --------------------------------
+    # -------------------------------------------------
     # Update Project Status
-    # --------------------------------
+    # -------------------------------------------------
     project.status = "approved"
     project.approval_date = datetime.utcnow()
     project.approved_by = current_user.id
 
-    # --------------------------------
-    # Generate Credits
-    # --------------------------------
-    credits_to_generate = project.expected_credits_per_year or 0
+    # -------------------------------------------------
+    # Decide How Many Credits To Generate
+    # -------------------------------------------------
+    credits_to_generate = (
+        project.expected_credits_per_year
+        if project.expected_credits_per_year and project.expected_credits_per_year > 0
+        else 10   # fallback default
+    )
 
     generated_count = 0
 
+    # -------------------------------------------------
+    # Generate Credits
+    # -------------------------------------------------
     for i in range(credits_to_generate):
 
         credit_id = f"CREDIT-{project.id}-{i+1}-{uuid.uuid4().hex[:8].upper()}"
 
         new_credit = Credit(
             credit_id=credit_id,
-            owner_id=project.owner_id,
-            project_id=project_id,
+            owner_id=owner.id,
+            project_id=project.id,
             status="Available"
         )
 
         db.add(new_credit)
-        db.flush()  # get ID before commit
+        db.flush()  # get new_credit.id before commit
 
-        # --------------------------------
-        # Blockchain Hash Linking Logic
-        # --------------------------------
+        # -------------------------------------------------
+        # Blockchain Hash Linking
+        # -------------------------------------------------
         last_history = db.query(CreditHistory).order_by(
             CreditHistory.id.desc()
         ).first()
 
         previous_hash = last_history.current_hash if last_history else "GENESIS"
 
-        data_to_hash = f"{new_credit.id}{owner.company_name}{datetime.utcnow()}{previous_hash}"
+        data_to_hash = f"{new_credit.id}-{owner.company_name}-{datetime.utcnow()}-{previous_hash}"
 
         current_hash = generate_hash(data_to_hash)
 
@@ -116,11 +123,12 @@ def approve_project(
         )
 
         db.add(history)
+
         generated_count += 1
 
-    # --------------------------------
+    # -------------------------------------------------
     # Update User Approval Status
-    # --------------------------------
+    # -------------------------------------------------
     owner.approval_status = "approved"
     owner.approval_date = datetime.utcnow()
 
