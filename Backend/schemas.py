@@ -3,15 +3,15 @@ from typing import List, Optional
 from datetime import datetime
 
 
-# ----------------------------
+# ============================
 # USER SCHEMAS
-# ----------------------------
+# ============================
 
 class UserCreate(BaseModel):
     company_name: str
     email: str
     password: str
-    role: str  # "company", "admin"
+    # 🚨 role REMOVED (cannot register as admin)
 
 
 class UserResponse(BaseModel):
@@ -26,18 +26,18 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-# ----------------------------
+# ============================
 # AUTH SCHEMA
-# ----------------------------
+# ============================
 
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str
 
 
-# ----------------------------
+# ============================
 # GREEN PROJECT SCHEMAS
-# ----------------------------
+# ============================
 
 class GreenProjectCreate(BaseModel):
     project_name: str
@@ -81,9 +81,9 @@ class GreenProjectDetail(GreenProjectResponse):
     owner: Optional[UserResponse] = None
 
 
-# ----------------------------
+# ============================
 # CREDIT HISTORY SCHEMAS
-# ----------------------------
+# ============================
 
 class CreditHistoryResponse(BaseModel):
     id: int
@@ -97,9 +97,9 @@ class CreditHistoryResponse(BaseModel):
         from_attributes = True
 
 
-# ----------------------------
+# ============================
 # CREDIT SCHEMAS
-# ----------------------------
+# ============================
 
 class CreateCreditRequest(BaseModel):
     credit_id: str
